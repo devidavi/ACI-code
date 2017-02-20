@@ -26,7 +26,7 @@ def make_tenant(cookies, apic):
 # Make Bridge Domain in Tenant
 #-------------------------
 def make_BD(cookies, apic):
-    BD_name = raw_input(Bridge Domain name? --> )
+    BD_name = raw_input('Bridge Domain name? -->' )
     BD_url = apic + '/api/node/mo/uni/tn-example/BD-DB_{}.json'.format(BD_name)
     BD = {"fvBD":{"attributes":{"dn":"uni/tn-{}/BD-BD-{}".format(tenant_name, BD_name),"mac":"00:22:BD:F8:19:FF","name":"BD-{}".format(BD_name),"rn":"BD-BD-{}".format(BD_name),"status":"created"},"children":[{"fvSubnet":{"attributes":{"dn":"uni/tn-{}/BD-BD-{}/subnet-[10.3.2.1/24]".format(tenant_name,BD_name),"ip":"10.3.2.1/24","rn":"subnet-[10.3.2.1/24]","status":"created"},"children":[]}},{"fvRsCtx":{"attributes":{"tnFvCtxName":vrf,"status":"created,modified"},"children":[]}}]}}
     create_BD = requests.post(BD_url, cookies=cookies, data=json.dumps(BD), verify=False)
@@ -37,17 +37,24 @@ def make_BD(cookies, apic):
 def main():
     print ''
     print 'Please fill out the information below...'
-    print ' Example URL ---- 'https://apic' '
-    apic = raw_input(APIC URL --> )
-    username = raw_input(APIC username --> )
-    password = raw_input(APIC password --> )
+    print 'Example URL ---- https://apic (last / isnt need and will throw an error)'
+    print '-------------------------------------------------------------------------'
+    apic = raw_input('APIC URL -->  ')
+    username = raw_input('APIC username -->  ')
+    password = raw_input('APIC password -->  ')
+    print '-------------------------------------------------------------------------'
+    print 'Passing URL= {}, Username= {}, Password= {}'.format(apic, username, password)
+    print ''
     authentication(username, password, apic)
     make_tenant(cookies)
     make_BD(cookies)
 
-#———————————————————————
+# ---- CALL MAIN FUNCTION ----
+main()
+
+#-----------------------
 # POST REFERENCES PULLED FROM API INSPECTOR
-#———————————————————————
+#-----------------------
 """
 method: POST
 url: https://apic/api/node/mo/uni/tn-TEST.json
