@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import requests
+import json
+
+username = 'admin'
+password = 'cisco123'
+apic = 'https://apic'
+
+###
+#--------------------------
+# Authentication POST
+#--------------------------
+auth_url = apic + '/api/aaaLogin.json'
+auth = dict(aaaUser=dict(attributes=dict(name=username, pwd=password)))
+authenticate = requests.post(auth_url, data=json.dumps(auth), verify=False)
+cookies = authenticate.cookies
+
+#-------------------------
+# Making Tenant & VRF 
+#-------------------------
+tenant_name = 'test2'
+tenant_url = apic + '/api/node/mo/uni/tn-{}.json'.format(tenant_name)
+vrf = 'test2'
+tenant = {"fvTenant":{"attributes":{"dn":"uni/tn-{}".format(tenant_name),"name":tenant_name,"rn":"tn-{}".format(tenant_name),"status":"created"},"children":[{"fvCtx":{"attributes":{"dn":"uni/tn-{}/ctx-{}".format(tenant_name, vrf),"name":vrf,"rn":"ctx-{}".format(vrf),"status":"created"},"children":[]}}]}}
+create_tenant = requests.post(tenant_url, cookies=cookies, data=json.dumps(tenant), verify=False)
+
+#-------------------------
+# Make Bridge Domain in Tenant
+#-------------------------
+BD_name = 'test2'
+BD_url = apic + '/api/node/mo/uni/tn-example/BD-DB_{}.json'.format(BD_name)
+BD = {"fvBD":{"attributes":{"dn":"uni/tn-{}/BD-BD-{}".format(tenant_name, BD_name),"mac":"00:22:BD:F8:19:FF","name":"BD-{}".format(BD_name),"rn":"BD-BD-{}".format(BD_name),"status":"created"},"children":[{"fvSubnet":{"attributes":{"dn":"uni/tn-{}/BD-BD-{}/subnet-[10.3.2.1/24]".format(tenant_name,BD_name),"ip":"10.3.2.1/24","rn":"subnet-[10.3.2.1/24]","status":"created"},"children":[]}},{"fvRsCtx":{"attributes":{"tnFvCtxName":vrf,"status":"created,modified"},"children":[]}}]}}
+create_BD = requests.post(BD_url, cookies=cookies, data=json.dumps(BD), verify=False)
+
+
+#———————————————————————
+# POST REFERENCES PULLED FROM API INSPECTOR
+#———————————————————————
+"""
+method: POST
+url: https://apic/api/node/mo/uni/tn-TEST.json
+payload{"fvTenant":{"attributes":{"dn":"uni/tn-TEST","name":"TEST","rn":"tn-TEST","status":"created"},"children":[{"fvCtx":{"attributes":{"dn":"uni/tn-TEST/ctx-TEST","name":"TEST","rn":"ctx-TEST","status":"created"},"children":[]}}]}}
+
+
+method: POST
+url: https://apic/api/node/mo/uni/tn-TEST/BD-BD-TEST.json
+payload{"fvBD":{"attributes":{"dn":"uni/tn-TEST/BD-BD-TEST","mac":"00:22:BD:F8:19:FF","name":"BD-TEST","rn":"BD-BD-TEST","status":"created"},"children":[{"fvSubnet":{"attributes":{"dn":"uni/tn-TEST/BD-BD-TEST/subnet-[10.2.2.1/24]","ip":"10.2.2.1/24","rn":"subnet-[10.2.2.1/24]","status":"created"},"children":[]}},{"fvRsCtx":{"attributes":{"tnFvCtxName":"TEST","status":"created,modified"},"children":[]}}]}}
+"""
